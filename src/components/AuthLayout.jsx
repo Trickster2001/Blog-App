@@ -2,23 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
-
 const Protected = ({children, authentication=true}) => {
-
+  
   const navigate = useNavigate();
   const [loader, setLoader] = useState(true);
-  const authStatus = useSelector((state) => state.auth.status);
+  const authStatus = useSelector((state) => state.auth.status)
 
   useEffect(()=>{
-    // if(authStatus === true) {
-    //   navigate("/")
-    // } else if(authStatus === false) {
-    //   navigate("/login")
-    // }
-    if(authentication && authStatus !== authentication) {
+    if(authentication && authStatus !== authentication){
       navigate("/login");
     } else if(!authentication && authStatus !== authentication) {
-      navigate("/");
+      navigate("/")
     }
     setLoader(false);
   },[authStatus, navigate, authentication])

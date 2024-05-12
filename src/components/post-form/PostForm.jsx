@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import {Button, Input, Select, RTE} from "../index"
-import appwriteService from "../../appwrite/config"
+import {Button, Input, RTE, Select} from "../index"
+import service from '../../appwrite/config'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
@@ -14,37 +14,30 @@ const PostForm = ({post}) => {
       status: post?.status || "active",
     }
   })
-
-  const Status = useSelector((state) => state.auth.userData.$id);
+  const Status = useSelector((state) => state.auth.userData);
 console.log("Poststatus", Status)
 
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
-  console.log("first ", userData);
+  console.log("userdata", userData)
 
   const submit = async (data) => {
-    console.log("running")
     if(post) {
-      console.log("running 1")
-      const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+      const file = data.image[0] ? await service.uploadFile(data.image[0]) : null 
       if(file) {
-        appwriteService.deleteFile(post.featuredImage)
+        service.delteFile(post.featuredImage)
       }
-
-      const dbPost = await appwriteService.updatePost(post.$id, {...data, featuredImage: file ? file.$id : undefined})
+      const dbPost = await service.updatePost(post.$id, {...data, featuredImage: file ? file.$id : undefined})
       if(dbPost) {
         navigate(`/post/${dbPost.$id}`)
-      } 
-    }
-    else {
-      console.log("running 2");
-      const file = await appwriteService.uploadFile(data.image[0]);
-
+      }
+    } else {
+      console.log("here")
+      const file = await service.uploadFile(data.image[0]);
       if(file) {
-        const fileId = file.$id
+        const fileId = file.$id;
         data.featuredImage = fileId;
-        console.log(data)
-        const dbPost = await appwriteService.createPost({...data, userId: userData.$id})
+        const dbPost = await service.createPost({...data, userId:userData.$id})
         if(dbPost) {
           navigate(`/post/${dbPost.$id}`)
         }
@@ -53,18 +46,17 @@ console.log("Poststatus", Status)
   }
 
   const slugTransform = useCallback((value) => {
-    if(value && typeof value === "string"){
+    if(value && typeof value==="string") {
       const slug = value.toLowerCase().replace(/ /g, '-')
       setValue('slug', slug)
       return slug
-      // return value.trim.toLowerCase().replace(/^[a-zA-Z\d\s]+/g, '-').replace(/\s/g, '-')
     }
-    return "";
+    return ""
   },[])
 
   useEffect(()=>{
     const subscription = watch((value, {name}) => {
-      if(name === "title") {
+      if(name==="title") {
         setValue("slug", slugTransform(value.title, {shouldValidate: true}))
       }
     })
@@ -73,7 +65,6 @@ console.log("Poststatus", Status)
       subscription.unsubscribe();
     }
   },[watch, slugTransform, setValue])
-
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
             <div className="w-2/3 px-2">
@@ -105,7 +96,7 @@ console.log("Poststatus", Status)
                 {post && (
                     <div className="w-full mb-4">
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
+                            src={service.getFilePrev(post.featuredImage)}
                             alt={post.title}
                             className="rounded-lg"
                         />
